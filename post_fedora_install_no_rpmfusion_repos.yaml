@@ -1,0 +1,114 @@
+---
+- hosts: localhost
+  tasks:
+   - name: Upgrade All Packages ## Because who doesn't want a fully updated system right away?
+     become: yes
+     dnf:
+       name: "*"
+       state: latest
+   - name: Add the flathub flatpak repository remote to the user installation ## Because why use snap?
+     flatpak_remote:
+       name: flathub
+       flatpakrepo_url: https://dl.flathub.org/repo/flathub.flatpakrepo
+   - name: Add Visual Studio Code RPM Key ## Because why would you fight the error messages from the flatpak?
+     become: yes
+     rpm_key:
+       key: https://packages.microsoft.com/keys/microsoft.asc
+   - name: Add Visual Studio Code Repo so DNF can update VSCode ## Because why wouldn't you want VSCode to update via DNF?
+     become: yes
+     shell: sh -c 'echo -e "[code]\nname=Visual Studio Code\nbaseurl=https://packages.microsoft.com/yumrepos/vscode\nenabled=1\ngpgcheck=1\ngpgkey=https://packages.microsoft.com/keys/microsoft.asc" > /etc/yum.repos.d/vscode.repo'
+   - name: Install Visual Studio Code ## Because why would you use anything else at this point if you have more than 8GB of RAM?
+     become: yes 
+     dnf:
+       name: code
+   - name: Add Virtualbox Repo
+     become: yes
+     yum_repository:
+       name: VirtualBox
+       description: VirtualBox YUM Repo
+       baseurl: http://download.virtualbox.org/virtualbox/rpm/fedora/virtualbox.repo
+   - name: Install packages needed for Virtualbox ## Becasue why hate yourself and make it so you have to rebuild kernel-modules every update?
+     become: yes
+     dnf:
+       name:
+         - gcc
+         - binutils
+         - make
+         - glibc-devel
+         - patch
+         - libgomp
+         - glibc-headers
+         - kernel-headers
+         - "kernel-devel-{{ ansible_kernel }}"
+         - dkms
+         - zip
+         - unzip
+   - name: Install VirtualBox ## Because why would I learn anything else at this point?
+     become: yes
+     dnf:
+       name: VirtualBox
+   - name: Add User to vboxusers group ## Because why put in all this effort and no be able to use VirtualBox?
+     become: yes
+     shell: usermod -a -G vboxusers ${USER}
+   - name: Install Vagrant ## Because who doesn't want a great tool to test playbooks against?
+     become: yes
+     dnf:
+       name: vagrant
+       state: latest
+   - name: Install Tig ## Because why would I want to look at git log and git blame all the time?
+     become: yes
+     dnf:
+       name: tig
+   - name: Install DNF System Upgrade ## Because why would you want to do a clean install when in-place works so well?
+     become: yes
+     dnf:
+       name: dnf-plugin-system-upgrade
+   - name: Install htop ## Because isn't top ugly?
+     become: yes
+     dnf:
+       name: htop
+   - name: Install Neofetch ## Because who doesn't want to show off a fancy rice?
+     become: yes
+     dnf:
+       name: neofetch
+   - name: Remove Rhythmbox ## Because no one keeps their music locally on a laptop anymore right?
+     become: yes
+     dnf:
+       name: rhythmbox
+       state: absent
+   - name: Install Solaar ## Because why haven't you switched to a Logitech Mouse yet?
+     become: yes
+     dnf:
+       name: solaar
+   - name: Install vim ## Because you why would you use nano or emacs?
+     become: yes
+     dnf:
+       name: vim
+   - name: Install Spotify ## Music streaming because who has their music locally at this point?
+     flatpak:
+       name: com.spotify.Client
+   - name: Install Discord ## Because it's nice to have something not on Google
+     flatpak:
+       name: com.discordapp.Discord
+   - name: Install Telegram ## Because why wouldn't you want to join some of the podcast communities?
+     flatpak:
+       name: org.telegram.desktop
+   - name: Install Slack ## Because why wouldn't you want to use what everyone upstream is using?
+     flatpak:
+       name: com.slack.Slack
+   - name: Install Signal ## Because why not use encryption?
+     flatpak:
+       name: org.signal.Signal
+   - name: Install Gnome Firmware ## Because why aren't you updating firmware?
+     flatpak:
+       name: org.gnome.Firmware
+   - name: display post install message
+     debug:
+       msg:
+       - 'Things left to do:'
+       - '- add VirtualBox Extenstion Pack from https://www.virtualbox.org/wiki/Downloads'
+       - '- Reboot so you can actually use VirtualBox'
+       - '- Check for firmware updates'
+       - '- Instal RPMFusion Repos https://rpmfusion.org/Configuration'
+       - '- Install ffmpeg via dnf for video via browser'
+...
